@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Світ Еліондар</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #111;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    #game {
+      width: 300px;
+      height: 300px;
+      background: #222;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 2px;
+      margin-bottom: 10px;
+    }
+    .tile {
+      background-color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      position: relative;
+    }
+    .player {
+      background-color: #4caf50;
+    }
+    .bot {
+      background-color: #ff5722;
+    }
+    .mob {
+      background-color: #673ab7;
+    }
+    #info, #inventory {
+      margin-bottom: 10px;
+    }
+    button {
+      margin: 2px;
+      padding: 6px;
+      background-color: #444;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌌 Світ Еліондар</h1>
+  <div id="info">Локація: Долина Тодза | Ресурси: 0</div>
+  <div id="game"></div>
+  <div>
+    <button onclick="move('up')">⬆️</button><br>
+    <button onclick="move('left')">⬅️</button>
+    <button onclick="move('down')">⬇️</button>
+    <button onclick="move('right')">➡️</button>
+  </div>
+  <div>
+    <button onclick="mine()">⛏️ Майнити</button>
+  </div>
+  <div id="inventory">🎒 Інвентар: (порожній)</div>  <script>
+    const size = 5;
+    const game = document.getElementById('game');
+    const info = document.getElementById('info');
+    const inventoryDisplay = document.getElementById('inventory');
+
+    let player = { x: 2, y: 2, resources: 0, inventory: [] };
+    let bots = [
+      { x: 0, y: 0 },
+      { x: 4, y: 4 },
+      { x: 0, y: 4 }
+    ];
+    let mobs = [
+      { x: 1, y: 1 },
+      { x: 3, y: 3 }
+    ];
+
+    function draw() {
+      game.innerHTML = '';
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const tile = document.createElement('div');
+          tile.classList.add('tile');
+
+          if (x === player.x && y === player.y) tile.classList.add('player');
+
+          for (let bot of bots) {
+            if (x === bot.x && y === bot.y) tile.classList.add('bot');
+          }
+
+          for (let mob of mobs) {
+            if (x === mob.x && y === mob.y) tile.classList.add('mob');
+          }
+
+          game.appendChild(tile);
+        }
+      }
+      info.textContent = `Локація: (${player.x + 1}, ${player.y + 1}) | Ресурси: ${player.resources}`;
+      inventoryDisplay.textContent = `🎒 Інвентар: ${player.inventory.length ? player.inventory.join(', ') : '(порожній)'}`;
+    }
+
+    function move(direction) {
+      if (direction === 'up' && player.y > 0) player.y--;
+      if (direction === 'down' && player.y < size - 1) player.y++;
+      if (direction === 'left' && player.x > 0) player.x--;
+      if (direction === 'right' && player.x < size - 1) player.x++;
+      checkForMob();
+      draw();
+    }
+
+    function mine() {
+      const resource = "Жива руда";
+      player.resources++;
+      player.inventory.push(resource);
+      alert(`Ти добув: ${resource}`);
+      draw();
+    }
+
+    function checkForMob() {
+      for (let i = 0; i < mobs.length; i++) {
+        const mob = mobs[i];
+        if (mob.x === player.x && mob.y === player.y) {
+          alert("Ти натрапив на моба! Бій виграно, моб знищений.");
+          mobs.splice(i, 1);
+          player.inventory.push("Сутність моба");
+          break;
+        }
+      }
+    }
+
+    function moveBots() {
+      for (let bot of bots) {
+        const dx = Math.random() < 0.5 ? -1 : 1;
+        const dy = Math.random() < 0.5 ? -1 : 1;
+        bot.x = Math.max(0, Math.min(size - 1, bot.x + dx));
+        bot.y = Math.max(0, Math.min(size - 1, bot.y + dy));
+      }
+      draw();
+    }
+
+    setInterval(moveBots, 2000); // боти рухаються кожні 2 сек
+
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowUp': move('up'); break;
+        case 'ArrowDown': move('down'); break;
+        case 'ArrowLeft': move('left'); break;
+        case 'ArrowRight': move('right'); break;
+        case 'm': case 'M': mine(); break;
+      }
+    });
+
+    draw();
+  </script></body>
+</html>
